@@ -1,25 +1,22 @@
 import os
+from common.validate_path import validate_path
 from config import MAX_CHARS
 
 
 def get_file_content(working_directory, file_path):
-    working_dir_abs = os.path.abspath(working_directory)
-    full_path = os.path.join(working_dir_abs, file_path)
-    target_dir = os.path.normpath(full_path)
-    # Will be True or False
-    valid_target_dir = (
-        os.path.commonpath([working_dir_abs, target_dir]) == working_dir_abs
-    )
+    path = validate_path(working_directory, file_path)
 
     try:
-        if not valid_target_dir:
+        if not path["is_valid_target_dir"]:
             raise Exception(
                 f'Cannot read "{file_path}" as it is outside the permitted working directory'
             )
-        if not os.path.isfile(full_path):
-            raise Exception(f'File not found or is not a regular file: "{file_path}"')
+        if not os.path.isfile(path["full_path"]):
+            raise Exception(
+                f'File not found or is not a regular file: "{path["full_path"]}"'
+            )
 
-        with open(full_path, "r") as file:
+        with open(path["full_path"], "r") as file:
             file_content_string = file.read(MAX_CHARS)
 
             # After reading the first MAX_CHARS...
