@@ -14,10 +14,10 @@ def get_files_info(working_directory, directory="."):
 
         if not valid_target_dir:
             raise Exception(
-                f'Error: Cannot list "{directory}" as it is outside the permitted working directory'
+                f'Cannot list "{directory}" as it is outside the permitted working directory'
             )
         if not os.path.isdir(full_path):
-            raise Exception(f'Error: "{full_path}" is not a directory')
+            raise Exception(f'"{full_path}" is not a directory')
         target_dir_contents = os.listdir(full_path)
         for item in target_dir_contents:
             item_path = f"{full_path}/{item}"
@@ -25,4 +25,4 @@ def get_files_info(working_directory, directory="."):
                 f"- {item}: file_size={os.path.getsize(item_path)} bytes, is_dir={os.path.isdir(item_path)}"
             )
     except Exception as e:
-        print(e)
+        print(f"Error: {e}")
