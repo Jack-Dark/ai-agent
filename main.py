@@ -33,7 +33,6 @@ def main():
         generate_content(client, messages, args.verbose)
 
     except Exception as e:
-        # clean top-level error reporting
         print("===================================")
         print("Error while calling the Gemini API.")
         print("===================================")
@@ -51,17 +50,20 @@ def generate_content(client, messages, verbose):
         ),
     )
 
+    if not response.usage_metadata:
+        raise RuntimeError("Gemini API response appears to be malformed")
+
+    if verbose:
+        print("Prompt tokens:", response.usage_metadata.prompt_token_count)
+        print("Response tokens:", response.usage_metadata.candidates_token_count)
+
     if not response.function_calls:
-        if verbose:
-            if response.usage_metadata:
-                print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-                print(
-                    f"Response tokens: {response.usage_metadata.candidates_token_count}"
-                )
+        print("Response:")
         print(response.text)
-    else:
-        for function_call in response.function_calls:
-            print(f"Calling function: {function_call.name}({function_call.args})")
+        return
+
+    for function_call in response.function_calls:
+        print(f"Calling function: {function_call.name}({function_call.args})")
 
 
 if __name__ == "__main__":
