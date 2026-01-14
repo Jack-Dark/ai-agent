@@ -1,5 +1,30 @@
 import subprocess
 from common.validate_path import validate_path
+from google.genai import types
+
+
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Executes file in a specified directory relative to the working directory",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="File path path to read from file, relative to the working directory",
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                description="Optional args",
+                items=types.Schema(
+                    type=types.Type.STRING,
+                    description="FUCK IF I KNOW",
+                ),
+            ),
+        },
+        required=["file_path"],
+    ),
+)
 
 
 def run_python_file(working_directory, file_path, args=None):

@@ -1,6 +1,22 @@
 import os
 from common.validate_path import validate_path
+from google.genai import types
 from config import MAX_CHARS
+
+schema_get_file_content = types.FunctionDeclaration(
+    name="get_file_content",
+    description="Reads the content of a file in a specified file path relative to the working directory",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="File path path to read from file, relative to the working directory",
+            ),
+        },
+        required=["file_path"],
+    ),
+)
 
 
 def get_file_content(working_directory, file_path):
@@ -8,13 +24,9 @@ def get_file_content(working_directory, file_path):
 
     try:
         if not path["is_valid_target_dir"]:
-            raise Exception(
-                f'Cannot read "{file_path}" as it is outside the permitted working directory'
-            )
+            return f'Cannot read "{file_path}" as it is outside the permitted working directory'
         if not os.path.isfile(path["full_path"]):
-            raise Exception(
-                f'File not found or is not a regular file: "{path["full_path"]}"'
-            )
+            return f'File not found or is not a regular file: "{path["full_path"]}"'
 
         with open(path["full_path"], "r") as file:
             file_content_string = file.read(MAX_CHARS)
