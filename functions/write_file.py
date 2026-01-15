@@ -23,7 +23,6 @@ schema_write_file = types.FunctionDeclaration(
 
 
 def write_file(working_directory, file_path, content):
-
     try:
         path = validate_path(working_directory, file_path)
 
@@ -33,7 +32,8 @@ def write_file(working_directory, file_path, content):
         if os.path.isdir(path["full_path"]):
             return f'Cannot write to "{path["full_path"]}" as it is a directory'
 
-        os.makedirs(file_path, exist_ok=True)
+        os.makedirs(os.path.dirname(path["full_path"]), exist_ok=True)
+
         with open(path["full_path"], "w") as file:
             file.write(content)
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
