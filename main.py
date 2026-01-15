@@ -42,40 +42,58 @@ def main():
 
 
 def generate_content(client, messages, verbose):
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=messages,
-        config=types.GenerateContentConfig(
-            tools=[available_functions],
-            system_instruction=system_prompt,
-            temperature=0,
-        ),
-    )
 
-    if not response.usage_metadata:
-        raise RuntimeError("Gemini API response appears to be malformed")
+    # default is 20
+    max_loops = 20
+    for _ in range(max_loops):
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=messages,
+            config=types.GenerateContentConfig(
+                tools=[available_functions],
+                system_instruction=system_prompt,
+                temperature=0,
+            ),
+        )
 
-    if verbose:
-        print("Prompt tokens:", response.usage_metadata.prompt_token_count)
-        print("Response tokens:", response.usage_metadata.candidates_token_count)
+        response_candidates = response.candidates
+        if response_candidates:
+            for candidate in response_candidates:
+                messages.append(candidate.content)
 
-    if not response.function_calls:
-        print("Response:")
-        print(response.text)
-        return
+        if not response.usage_metadata:
+            raise RuntimeError("Gemini API response appears to be malformed")
 
-    function_responses = []
-    for function_call in response.function_calls:
-        result = call_function(function_call, verbose)
-        if (
-            not result.parts
-            or not result.parts[0].function_response
-            or not result.parts[0].function_response.response
-        ):
-            raise RuntimeError(f"Empty function response for {function_call.name}")
         if verbose:
-            print(f"-> {result.parts[0].function_response.response}")
-        function_responses.append(result.parts[0])
+            print("Prompt tokens:", response.usage_metadata.prompt_token_count)
+            print("Response tokens:", response.usage_metadata.candidates_token_count)
+
+        if not response.function_calls:
+            print("Response:")
+            print(response.text)
+            return
+
+        function_responses = []
+        for function_call in response.function_calls:
+            result = call_function(function_call, verbose)
+            if (
+                not result.parts
+                or not result.parts[0].function_response
+                or not result.parts[0].function_response.response
+            ):
+                raise RuntimeError(f"Empty function response for {function_call.name}")
+            if verbose:
+                print(f"-> {result.parts[0].function_response.response}")
+            function_responses.append(result.parts[0])
+
+        messages.append(
+            types.Content(
+                role="user",
+                parts=function_responses,
+            )
+        )
+
+    os.sys.exit(f"Max loops threshold ({max_loops}) met. Aborting...")
 
 
 if __name__ == "__main__":
