@@ -1,5 +1,5 @@
-import os
 import argparse
+import os
 import sys
 
 from dotenv import load_dotenv
@@ -9,11 +9,6 @@ from google.genai import types
 from call_function import available_functions, call_function
 from config import MAX_ITERS
 from prompts import system_prompt
-
-load_dotenv()
-api_key = os.environ.get("GEMINI_API_KEY")
-
-client = genai.Client(api_key=api_key)
 
 
 def main():
@@ -29,29 +24,21 @@ def main():
 
     client = genai.Client(api_key=api_key)
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
-
     if args.verbose:
         print(f"User prompt: {args.user_prompt}\n")
 
-    try:
-        for _ in range(MAX_ITERS):
-            try:
-                final_response = generate_content(client, messages, args.verbose)
-                if final_response:
-                    print("Final response:")
-                    print(final_response)
-                    return
-            except Exception as e:
-                print(f"Error in generate_content: {e}")
+    for _ in range(MAX_ITERS):
+        try:
+            final_response = generate_content(client, messages, args.verbose)
+            if final_response:
+                print("Final response:")
+                print(final_response)
+                return
+        except Exception as e:
+            print(f"Error in generate_content: {e}")
 
-        print(f"Maximum iterations ({MAX_ITERS}) reached")
-        sys.exit(1)
-
-    except Exception as e:
-        print("===================================")
-        print("Error while calling the Gemini API.")
-        print("===================================")
-        print(e)
+    print(f"Maximum iterations ({MAX_ITERS}) reached")
+    sys.exit(1)
 
 
 def generate_content(client, messages, verbose):
